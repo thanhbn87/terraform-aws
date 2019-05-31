@@ -40,6 +40,7 @@ resource "aws_route53_record" "local" {
   type    = "A"
   ttl     = "${var.private_record_ttl}"
   records = ["${element(concat(aws_eip.this.*.private_ip,list("")),count.index)}"]
+  depends_on = [ "spotinst_elastigroup_aws.this" ]
 }
 
 resource "spotinst_elastigroup_aws" "this" {

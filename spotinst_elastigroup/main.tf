@@ -21,6 +21,18 @@ locals {
       "value" = "${var.project_env}"
     }
   ]
+
+  ebs_block_device_more = "${length(var.ebs_block_device) > 0 ? true : false}"
+  ebs_block_device      = {
+    more      = "${var.ebs_block_device}"
+    only_root = [{
+      device_name           = "${var.ebs_device_name}"
+      volume_type           = "${var.ebs_volume_type}"
+      volume_size           = "${var.ebs_volume_size}"
+      delete_on_termination = "${var.ebs_delete_on_termination}"
+    }]
+  }
+
 }
 
 /// Resources:
@@ -31,16 +43,6 @@ resource "aws_eip" "this" {
     Env    = "${var.project_env}"
     Name   = "${lower(var.name)}-${format("%02d", count.index + 1)}"
   }
-}
-
-resource "aws_route53_record" "local" {
-  count   = "${var.route53_local ? "${var.desired_capacity}" : 0}"
-  zone_id = "${var.private_zone_id}"
-  name    = "${lower(var.name)}-${format("%02d", count.index + 1)}.${var.domain_local}"
-  type    = "A"
-  ttl     = "${var.private_record_ttl}"
-  records = ["${element(concat(aws_eip.this.*.private_ip,list("")),count.index)}"]
-  depends_on = [ "spotinst_elastigroup_aws.this" ]
 }
 
 resource "spotinst_elastigroup_aws" "this" {
@@ -71,6 +73,8 @@ resource "spotinst_elastigroup_aws" "this" {
   health_check_grace_period = "${var.health_check_grace_period}"
   elastic_ips               = ["${compact(concat(aws_eip.this.*.id,list("")))}"]
   network_interface         = ["${var.network_interface}"]
+//ebs_block_device          = "${length(var.ebs_block_device) > 0 ? "${var.ebs_block_device}" : "${local.ebs_block_device}" }"
+  ebs_block_device          = "${local.ebs_block_device["${local.ebs_block_device_more ? "more" : "only_root"}"]}"
 
   // Compute
   instance_types_ondemand       = "${var.instance_types_ondemand}"
@@ -100,4 +104,14 @@ resource "spotinst_elastigroup_aws" "this" {
       "desired_capacity",
     ] 
   }
+}
+
+resource "aws_route53_record" "local" {
+  count   = "${var.route53_local ? "${var.desired_capacity}" : 0}"
+  zone_id = "${var.private_zone_id}"
+  name    = "${lower(var.name)}-${format("%02d", count.index + 1)}.${var.domain_local}"
+  type    = "A"
+  ttl     = "${var.private_record_ttl}"
+  records = ["${coalesce(element(concat(aws_eip.this.*.private_ip,list("")),count.index),"${var.route53_temp_ip}")}"]
+  depends_on = [ "spotinst_elastigroup_aws.this", "aws_eip.this" ]
 }

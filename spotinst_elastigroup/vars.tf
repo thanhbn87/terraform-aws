@@ -21,9 +21,10 @@ variable "tags" {
 
 /// AWS Route53 local:
 variable "route53_local" { default = true }
-variable "private_zone_id" {}
-variable "domain_local" {}
+variable "private_zone_id" { default = "" }
+variable "domain_local" { default = "local" }
 variable "private_record_ttl" { default = "300" }
+variable "route53_temp_ip" { default = "10.10.10.10" }
 
 /// Capacity:
 variable "min_size" { default = "0" }
@@ -51,6 +52,11 @@ variable "network_interface" {
     "associate_public_ip_address" = false
   }
 }
+variable "ebs_block_device" { default = [] }
+variable "ebs_device_name" { default = "/dev/xvda" }
+variable "ebs_volume_type" { default = "gp2" }
+variable "ebs_volume_size" { default = "8" }
+variable "ebs_delete_on_termination" { default = "false" }
 
 /// Compute:
 variable "instance_types_ondemand" { default = "t3.nano" }

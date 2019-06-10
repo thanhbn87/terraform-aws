@@ -73,7 +73,6 @@ resource "spotinst_elastigroup_aws" "this" {
   health_check_grace_period = "${var.health_check_grace_period}"
   elastic_ips               = ["${compact(concat(aws_eip.this.*.id,list("")))}"]
   network_interface         = ["${var.network_interface}"]
-//ebs_block_device          = "${length(var.ebs_block_device) > 0 ? "${var.ebs_block_device}" : "${local.ebs_block_device}" }"
   ebs_block_device          = "${local.ebs_block_device["${local.ebs_block_device_more ? "more" : "only_root"}"]}"
 
   // Compute

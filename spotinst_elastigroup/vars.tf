@@ -4,6 +4,7 @@ variable "spotinst_token" {}
 
 /// General:
 variable "name" { default = "spotinst_aws" }
+variable "namespace" { default = "" }
 variable "desc" { default = "Spotinst ElastiGroup" }
 variable "product" { default = "Linux/UNIX" }
 variable "region" { default = "us-west-2" }

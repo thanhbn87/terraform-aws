@@ -33,6 +33,8 @@ locals {
     }]
   }
 
+  name = "${var.namespace == "" ? var.name : "${var.namespace}-${var.name}"}"
+
 }
 
 /// Resources:
@@ -47,7 +49,7 @@ resource "aws_eip" "this" {
 
 resource "spotinst_elastigroup_aws" "this" {
   // General:
-  name        = "${var.name}"
+  name        = "${local.name}"
   description = "${var.desc}"
   product     = "${var.product}"
   region      = "${var.region}"
